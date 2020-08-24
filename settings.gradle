@@ -1,0 +1,10 @@
+def getProjectName = { ->
+    def temp = System.getenv('PROJECT_NAME')
+    if (temp == null || temp.empty) {
+        temp = System.getenv('JOB_NAME')
+    }
+    return temp
+}
+
+rootProject.name = "${getProjectName}"
+

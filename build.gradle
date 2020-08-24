@@ -1,0 +1,54 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.16.1"
+    }
+}
+
+def getProtoVersion = { ->
+    def text = ''
+    def fis = file("../../version").withReader {
+        reader -> text = reader.readLines().stream()
+                .map { it.trim() }
+                .filter { !it.empty }
+                .collect(java.util.stream.Collectors.joining(""))
+    }
+    return Integer.parseInt(text)
+}
+
+def getGitRevision = { ->
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'rev-list', '--count', 'HEAD'
+        standardOutput = stdout
+    }
+    return stdout.toString().trim()
+}
+
+apply plugin: 'java'
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'maven-publish'
+
+compileJava.options.encoding = 'UTF-8'
+sourceCompatibility = 1.8
+
+group 'com.example'
+version "${System.getenv('BUILD_MAJOR_VERSION')}.${getGitRevision}.${System.getenv('BUILD_REVISION')}"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    implementation 'com.google.protobuf:protobuf-java:3.12.2'
+}
+
+publishing {
+// ...
+}
